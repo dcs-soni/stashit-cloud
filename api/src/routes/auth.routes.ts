@@ -62,7 +62,7 @@ export const authRoutes = async (app: FastifyInstance) => {
       }
 
       const token = app.jwt.sign(
-        { id: user._id.toString() },
+        { id: user._id.toString(), username: user.username },
         { expiresIn: "7d" },
       );
       return { token };

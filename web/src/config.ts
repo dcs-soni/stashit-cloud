@@ -1,3 +1,1 @@
-export const API_URL = import.meta.env.PROD
-  ? "https://your-api-domain.com"
-  : "";
+export const API_URL = import.meta.env.VITE_API_URL ?? "";
