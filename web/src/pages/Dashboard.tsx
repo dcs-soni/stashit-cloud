@@ -24,7 +24,13 @@ interface ContentItem {
   type: string;
 }
 
+interface SearchResultItem {
+  title: string;
+  link: string;
+}
+
 interface DashboardProps {
+  username: string | null;
   onLogout: () => void;
 }
 
@@ -34,13 +40,13 @@ const contentTypes = [
   { value: "video", label: "Video", icon: Video },
 ];
 
-const Dashboard = ({ onLogout }: DashboardProps) => {
+const Dashboard = ({ username, onLogout }: DashboardProps) => {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchResults, setSearchResults] = useState<
-    { title: string; link: string }[] | null
-  >(null);
+  const [searchResults, setSearchResults] = useState<SearchResultItem[] | null>(
+    null,
+  );
   const [shareHash, setShareHash] = useState<string | null>(null);
 
   const [newContent, setNewContent] = useState({
@@ -109,11 +115,12 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
   const clearSearch = () => setSearchResults(null);
 
-  const displayContent = searchResults ?? content;
+  const displayContent: (ContentItem | SearchResultItem)[] =
+    searchResults ?? content;
 
   return (
     <div className="min-h-screen bg-dark-950">
-      <Header username="User" onLogout={onLogout} />
+      <Header username={username ?? "User"} onLogout={onLogout} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row gap-4 mb-8">

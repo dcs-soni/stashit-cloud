@@ -14,6 +14,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    return Promise.reject(error);
+  },
+);
+
 export const authApi = {
   signup: (username: string, password: string) =>
     api.post("/api/v1/signup", { username, password }),
