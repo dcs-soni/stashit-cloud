@@ -39,7 +39,7 @@ export const authRoutes = async (app: FastifyInstance) => {
 
       const existingUser = await findUserByUsername(username);
       if (existingUser) {
-        return reply.status(411).send({ message: "Username already exists" });
+        return reply.status(409).send({ message: "Username already exists" });
       }
 
       await createUser(username, password);
@@ -61,7 +61,10 @@ export const authRoutes = async (app: FastifyInstance) => {
         return reply.status(403).send({ message: "Incorrect credentials" });
       }
 
-      const token = app.jwt.sign({ id: user._id.toString() });
+      const token = app.jwt.sign(
+        { id: user._id.toString() },
+        { expiresIn: "7d" },
+      );
       return { token };
     },
   );

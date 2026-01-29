@@ -88,7 +88,7 @@ export const publicContentRoutes = async (app: FastifyInstance) => {
 
     const result = await getSharedContent(shareLink);
     if (!result) {
-      return reply.status(411).send({ message: "Invalid share link" });
+      return reply.status(404).send({ message: "Invalid share link" });
     }
 
     return result;
