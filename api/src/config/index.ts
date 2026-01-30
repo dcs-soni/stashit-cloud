@@ -6,6 +6,7 @@ const requiredEnvVars = [
   "CHROMA_TENANT",
   "CHROMA_DATABASE",
   "CHROMA_API_KEY",
+  "OPENAI_API_KEY",
 ] as const;
 
 const validateEnv = (): void => {
@@ -41,5 +42,9 @@ export const config = {
 
   cors: {
     origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  },
+
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY!,
   },
 } as const;

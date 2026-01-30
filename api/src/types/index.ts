@@ -23,6 +23,7 @@ export interface Link {
 }
 
 export interface ContentMetadata {
+  [key: string]: string; // Index signature for ChromaDB compatibility
   title: string;
   type: string;
   link: string;

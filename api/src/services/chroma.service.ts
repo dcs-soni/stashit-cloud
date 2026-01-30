@@ -1,4 +1,4 @@
-import { ChromaClient, Collection } from "chromadb";
+import { ChromaClient, Collection, OpenAIEmbeddingFunction } from "chromadb";
 import { config } from "../config/index.js";
 import type { ContentMetadata, SearchResult } from "../types/index.js";
 
@@ -6,14 +6,29 @@ const COLLECTION_NAME = "stashit_content";
 
 let client: ChromaClient | null = null;
 let collection: Collection | null = null;
+let embedder: OpenAIEmbeddingFunction | null = null;
+
+const getEmbedder = (): OpenAIEmbeddingFunction => {
+  if (!embedder) {
+    embedder = new OpenAIEmbeddingFunction({
+      openai_api_key: config.openai.apiKey,
+      openai_model: "text-embedding-3-small",
+    });
+  }
+  return embedder;
+};
 
 const getClient = (): ChromaClient => {
   if (!client) {
     client = new ChromaClient({
-      path: `https://api.trychroma.com`,
+      path: "https://api.trychroma.com",
       tenant: config.chroma.tenant,
       database: config.chroma.database,
-      auth: { provider: "token", credentials: config.chroma.apiKey },
+      auth: {
+        provider: "token",
+        credentials: config.chroma.apiKey,
+        tokenHeaderType: "X_CHROMA_TOKEN",
+      },
     });
   }
   return client;
@@ -28,11 +43,14 @@ export const initializeChroma = async (): Promise<Collection> => {
     collection = await chromaClient.getOrCreateCollection({
       name: COLLECTION_NAME,
       metadata: { "hnsw:space": "cosine" },
+      embeddingFunction: getEmbedder(),
     });
-    console.log(`✅ Chroma Cloud collection '${COLLECTION_NAME}' ready`);
+    console.log(
+      `Chroma Cloud collection '${COLLECTION_NAME}' ready (OpenAI embeddings)`,
+    );
     return collection;
   } catch (error) {
-    console.error("❌ Failed to initialize Chroma Cloud:", error);
+    console.error("Failed to initialize Chroma Cloud:", error);
     throw error;
   }
 };
@@ -65,7 +83,7 @@ export const addToVectorDB = async (
   await col.add({
     ids: [id],
     documents: [content],
-    metadatas: [metadata],
+    metadatas: [metadata as Record<string, string>],
   });
 };
 
@@ -95,15 +113,19 @@ export const searchVectorDB = async (
 
   if (!results.documents?.[0]?.length) return [];
 
-  return results.documents[0].map((doc, i) => ({
-    id: results.ids[0][i],
-    document: doc ?? "",
-    score: results.distances ? 1 - (results.distances[0][i] ?? 0) : 0,
-    metadata: {
-      title:
-        (results.metadatas?.[0]?.[i] as ContentMetadata)?.title ?? "Untitled",
-      link: (results.metadatas?.[0]?.[i] as ContentMetadata)?.link ?? "",
-      type: (results.metadatas?.[0]?.[i] as ContentMetadata)?.type ?? "unknown",
-    },
-  }));
+  return results.documents[0].map((doc, i) => {
+    const meta = results.metadatas?.[0]?.[
+      i
+    ] as unknown as ContentMetadata | null;
+    return {
+      id: results.ids[0][i],
+      document: doc ?? "",
+      score: results.distances ? 1 - (results.distances[0][i] ?? 0) : 0,
+      metadata: {
+        title: meta?.title ?? "Untitled",
+        link: meta?.link ?? "",
+        type: meta?.type ?? "unknown",
+      },
+    };
+  });
 };
