@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,30 +10,194 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family:
     "Inter",
     system-ui,
     -apple-system,
     sans-serif;
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: #fafaf8;
+  color: #383830;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Outfit", system-ui, sans-serif;
+}
+
+/* Custom scrollbar - Minimal */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #f5f5f0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
+  background: #d4d4cc;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #a8a89c;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #5b7e62 0%, #7c9a82 50%, #456b4c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-mesh {
+  background:
+    radial-gradient(
+      ellipse at 20% 30%,
+      rgba(92, 126, 98, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(124, 154, 130, 0.06) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 40% 80%,
+      rgba(69, 107, 76, 0.05) 0%,
+      transparent 45%
+    ),
+    linear-gradient(180deg, #fafaf8 0%, #f5f5f0 100%);
+}
+
+.bg-mesh-animated {
+  background:
+    radial-gradient(
+      ellipse at 20% 30%,
+      rgba(92, 126, 98, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(124, 154, 130, 0.06) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 40% 80%,
+      rgba(69, 107, 76, 0.05) 0%,
+      transparent 45%
+    ),
+    linear-gradient(180deg, #fafaf8 0%, #f5f5f0 100%);
+  animation: mesh-shift 20s ease-in-out infinite;
+}
+
+@keyframes mesh-shift {
+  0%,
+  100% {
+    background-position:
+      0% 0%,
+      100% 0%,
+      50% 100%,
+      0% 0%;
+  }
+  25% {
+    background-position:
+      20% 20%,
+      80% 10%,
+      30% 80%,
+      0% 0%;
+  }
+  50% {
+    background-position:
+      10% 40%,
+      90% 30%,
+      60% 70%,
+      0% 0%;
+  }
+  75% {
+    background-position:
+      30% 10%,
+      70% 40%,
+      40% 90%,
+      0% 0%;
+  }
+}
+
+.dot-grid {
+  background-image: radial-gradient(circle, #d4d4cc 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.card-neumorphic {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 212, 204, 0.5);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.03),
+    0 1px 3px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.card-neumorphic:hover {
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-color: rgba(212, 212, 204, 0.8);
+}
+
+.card-glass {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+}
+
+/* Intersection observer reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+.step-line {
+  background: linear-gradient(to bottom, #5b7e62 0%, #7c9a82 50%, #d4d4cc 100%);
+}
+
+*:focus-visible {
+  outline: 2px solid #5b7e62;
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background-color: rgba(92, 126, 98, 0.2);
+  color: #1c1c18;
 }
