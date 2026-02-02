@@ -1,0 +1,47 @@
+# Dependencies (will be installed in container)
+node_modules
+
+# Build output (will be generated in container)
+dist
+
+# Environment files (secrets should be passed via env vars)
+.env
+.env.*
+!.env.example
+.npmrc
+.npmrc.*
+
+# Development files
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+coverage
+
+# Docker files (prevent recursive context)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
