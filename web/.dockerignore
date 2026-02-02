@@ -1,0 +1,46 @@
+# Dependencies (will be installed in container)
+node_modules
+
+# Build output (will be generated in container)
+dist
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Development files
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+coverage
+vitest.config.ts
+
+# Docker files (prevent recursive context)
+Dockerfile*
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
