@@ -9,6 +9,7 @@ import {
 } from "./chroma.service.js";
 import { generateRandomString } from "../utils/random.js";
 import type { Content } from "../types/index.js";
+import type { DeleteResult } from "mongodb";
 
 export const createContent = async (
   title: string,
@@ -56,8 +57,8 @@ export const createShareLink = async (userId: string): Promise<string> => {
   return hash;
 };
 
-export const deleteShareLink = (userId: string) =>
-  LinkModel.deleteOne({ userId });
+export const deleteShareLink = (userId: string): Promise<DeleteResult> =>
+  LinkModel.deleteOne({ userId }).exec();
 
 export const getSharedContent = async (hash: string) => {
   const link = await LinkModel.findOne({ hash });
