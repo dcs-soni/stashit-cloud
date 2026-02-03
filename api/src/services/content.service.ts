@@ -56,8 +56,12 @@ export const createShareLink = async (userId: string): Promise<string> => {
   return hash;
 };
 
-export const deleteShareLink = (userId: string) =>
-  LinkModel.deleteOne({ userId });
+export const deleteShareLink = (
+  userId: string,
+): Promise<{ deletedCount: number }> =>
+  LinkModel.deleteOne({ userId }) as unknown as Promise<{
+    deletedCount: number;
+  }>;
 
 export const getSharedContent = async (hash: string) => {
   const link = await LinkModel.findOne({ hash });
