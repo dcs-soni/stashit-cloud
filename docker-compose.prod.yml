@@ -1,0 +1,108 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: ${API_IMAGE:-stashit/api:latest}
+    container_name: stashit-api-prod
+    restart: always
+    init: true
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - CHROMA_TENANT=${CHROMA_TENANT}
+      - CHROMA_DATABASE=${CHROMA_DATABASE}
+      - CHROMA_API_KEY=${CHROMA_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    security_opt:
+      - no-new-privileges:true
+    # Resource limits (Docker Compose v2.x compatible)
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: 1.0
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - stashit-prod-network
+    labels:
+      - "com.stashit.environment=production"
+      - "com.stashit.service=api"
+      - "com.stashit.version=${API_VERSION:-latest}"
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    image: ${WEB_IMAGE:-stashit/web:latest}
+    container_name: stashit-web-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443" # Ready for HTTPS termination
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101
+      - /var/run:uid=101,gid=101
+    depends_on:
+      api:
+        condition: service_healthy
+    # Resource limits
+    mem_limit: 128m
+    mem_reservation: 64m
+    cpus: 0.5
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    networks:
+      - stashit-prod-network
+    labels:
+      - "com.stashit.environment=production"
+      - "com.stashit.service=web"
+      - "com.stashit.version=${WEB_VERSION:-latest}"
+
+networks:
+  stashit-prod-network:
+    name: stashit-prod-network
+    driver: bridge
