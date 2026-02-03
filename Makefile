@@ -121,7 +121,7 @@ shell-web:
 	docker compose exec web sh
 
 shell-db:
-	docker compose exec mongodb mongosh -u root -p password
+	docker compose exec mongodb mongosh -u $${MONGO_ROOT_USER:-root} -p $${MONGO_ROOT_PASSWORD:-password}
 
 
 status:
@@ -153,7 +153,8 @@ db-migrate:
 
 db-backup:
 	@echo "$(GREEN)Creating database backup...$(NC)"
-	docker compose exec mongodb mongodump -u root -p password --authenticationDatabase admin --out /tmp/backup
+	@mkdir -p ./backups
+	docker compose exec mongodb mongodump -u $${MONGO_ROOT_USER:-root} -p $${MONGO_ROOT_PASSWORD:-password} --authenticationDatabase admin --out /tmp/backup
 	docker compose cp mongodb:/tmp/backup ./backups/$(shell date +%Y%m%d_%H%M%S)
 	@echo "$(GREEN)Backup saved to ./backups/$(NC)"
 
