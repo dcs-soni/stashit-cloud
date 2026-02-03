@@ -1,0 +1,144 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: stashit/api:local
+    container_name: stashit-api
+    restart: unless-stopped
+    init: true
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./api/.env
+    environment:
+      # Override for Docker environment
+      - NODE_ENV=development
+      - PORT=3000
+      # Database - use Docker MongoDB container
+      - DATABASE_URL=${DATABASE_URL:-mongodb://root:password@mongodb:27017/stashit?authSource=admin}
+      # CORS - Web container runs on port 80
+      - CORS_ORIGIN=http://localhost
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - stashit-network
+    labels:
+      - "com.stashit.environment=local"
+      - "com.stashit.service=api"
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:3000
+    image: stashit/web:local
+    container_name: stashit-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101
+      - /var/run:uid=101,gid=101
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - stashit-network
+    labels:
+      - "com.stashit.environment=local"
+      - "com.stashit.service=web"
+
+  mongodb:
+    image: mongo:7.0
+    container_name: stashit-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=stashit
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - stashit-network
+    labels:
+      - "com.stashit.environment=local"
+      - "com.stashit.service=mongodb"
+
+  # MongoDB Express (Optional Web UI)
+  mongo-express:
+    image: mongo-express:1.0
+    container_name: stashit-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_URL=mongodb://root:password@mongodb:27017/
+      - ME_CONFIG_BASICAUTH=false
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - stashit-network
+    labels:
+      - "com.stashit.environment=local"
+      - "com.stashit.service=mongo-express"
+    profiles:
+      - tools
+
+networks:
+  stashit-network:
+    name: stashit-network
+    driver: bridge
+
+volumes:
+  mongodb-data:
+    name: stashit-mongodb-data
+  mongodb-config:
+    name: stashit-mongodb-config
