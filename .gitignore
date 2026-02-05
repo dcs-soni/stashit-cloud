@@ -39,3 +39,12 @@ docker-data/
 .cache/
 .temp/
 .tmp/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+!terraform.tfvars.example
