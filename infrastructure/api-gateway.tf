@@ -22,22 +22,29 @@ resource "aws_apigatewayv2_integration" "lambda" {
   timeout_milliseconds   = var.api_timeout * 1000
 }
 
+# NOTE: Authorization is handled inside the Lambda function using Fastify JWT middleware.
+# Routes are set to authorization_type = "NONE" at the API Gateway level intentionally.
+# The Lambda performs JWT validation and returns 401/403 for unauthorized requests.
+
 resource "aws_apigatewayv2_route" "catch_all" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "$default"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "$default"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "NONE"
 }
 
 resource "aws_apigatewayv2_route" "api" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "ANY /api/{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "ANY /api/{proxy+}"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "NONE"
 }
 
 resource "aws_apigatewayv2_route" "health" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "GET /health"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /health"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "NONE" # Intentionally public endpoint
 }
 
 resource "aws_apigatewayv2_stage" "default" {
