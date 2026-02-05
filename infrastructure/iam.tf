@@ -48,7 +48,10 @@ resource "aws_iam_role_policy" "lambda_custom" {
       {
         Sid      = "SecretsManagerAccess"
         Effect   = "Allow"
-        Action   = ["secretsmanager:GetSecretValue"]
+        Action   = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
         Resource = aws_secretsmanager_secret.api_secrets.arn
       }
     ]
