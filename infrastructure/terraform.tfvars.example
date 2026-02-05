@@ -8,10 +8,16 @@ project_name = "stashit-cloud"
 api_memory_size = 1024
 api_timeout     = 30
 
-# Secrets (REQUIRED - fill these in!)
+# Secrets (REQUIRED for production - fill these in!)
 database_url    = "mongodb+srv://user:pass@cluster.mongodb.net/stashit"
-jwt_secret      = "your-jwt-secret"
+jwt_secret      = "your-jwt-secret-min-32-chars"
 chroma_tenant   = "your-chroma-tenant"
 chroma_database = "your-chroma-database"
 chroma_api_key  = "your-chroma-api-key"
-cors_origin     = "*"
+openai_api_key  = "your-openai-api-key"
+
+# CORS origin (REQUIRED - must be explicit, not wildcard)
+cors_origin = "https://your-production-domain.com"
+
+# Optional
+log_retention_days = 90

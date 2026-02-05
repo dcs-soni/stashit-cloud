@@ -1,4 +1,3 @@
-
 terraform {
   required_version = ">= 1.0"
 
@@ -9,14 +8,17 @@ terraform {
     }
   }
 
-  # Uncomment to use S3 backend for team collaboration
-  # backend "s3" {
-  #   bucket         = "stashit-terraform-state"
-  #   key            = "production/terraform.tfstate"
-  #   region         = "ap-south-1"
-  #   dynamodb_table = "stashit-terraform-locks"
-  #   encrypt        = true
-  # }
+  # S3 remote backend for team collaboration and production workflows
+  # Prerequisites: Create S3 bucket and DynamoDB table before enabling
+  # aws s3api create-bucket --bucket stashit-terraform-state --region ap-south-1 --create-bucket-configuration LocationConstraint=ap-south-1
+  # aws dynamodb create-table --table-name stashit-terraform-locks --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --billing-mode PAY_PER_REQUEST
+  backend "s3" {
+    bucket         = "stashit-terraform-state"
+    key            = "production/terraform.tfstate"
+    region         = "ap-south-1"
+    dynamodb_table = "stashit-terraform-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
