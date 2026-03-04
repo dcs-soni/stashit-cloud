@@ -42,6 +42,19 @@ export const contentRoutes = async (app: FastifyInstance) => {
         link: string;
         type: string;
       };
+
+      // Validate URL scheme — only allow http and https
+      try {
+        const parsed = new URL(link);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          return reply
+            .status(400)
+            .send({ message: "Only http and https URLs are allowed" });
+        }
+      } catch {
+        return reply.status(400).send({ message: "Invalid URL format" });
+      }
+
       const userId = (request as AuthenticatedRequest).user.id;
 
       await createContent(title, link, type, userId);

@@ -22,6 +22,7 @@ import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { contentApi, searchApi } from "../lib/api";
+import { isSafeUrl } from "../lib/utils";
 
 interface ContentItem {
   _id: string;
@@ -105,14 +106,20 @@ const ContentCard = ({
           <p className="text-sm text-surface-400 truncate">{item.link}</p>
         </div>
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <a
-            href={item.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-lg text-surface-400 hover:text-accent-600 hover:bg-accent-50 transition-all"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          {isSafeUrl(item.link) ? (
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg text-surface-400 hover:text-accent-600 hover:bg-accent-50 transition-all"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          ) : (
+            <span className="p-2 rounded-lg text-surface-300">
+              <ExternalLink className="w-4 h-4" />
+            </span>
+          )}
           {isFullItem && onDelete && (
             <button
               onClick={() => onDelete(item._id)}
@@ -151,15 +158,21 @@ const ContentCard = ({
         {item.title}
       </h3>
       <p className="text-sm text-surface-400 truncate mb-4">{item.link}</p>
-      <a
-        href={item.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-accent-600 hover:text-accent-700 font-medium text-sm transition-colors"
-      >
-        Open link
-        <ExternalLink className="w-4 h-4" />
-      </a>
+      {isSafeUrl(item.link) ? (
+        <a
+          href={item.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-accent-600 hover:text-accent-700 font-medium text-sm transition-colors"
+        >
+          Open link
+          <ExternalLink className="w-4 h-4" />
+        </a>
+      ) : (
+        <span className="inline-flex items-center gap-2 text-surface-400 text-sm">
+          Invalid link
+        </span>
+      )}
     </Card>
   );
 };
