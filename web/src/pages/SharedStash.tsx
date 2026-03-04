@@ -14,6 +14,7 @@ import {
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import { contentApi } from "../lib/api";
+import { isSafeUrl } from "../lib/utils";
 
 interface SharedContentItem {
   _id: string;
@@ -208,15 +209,21 @@ const SharedStash = () => {
                   <p className="text-sm text-surface-400 truncate mb-4">
                     {item.link}
                   </p>
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-accent-600 hover:text-accent-700 font-medium text-sm transition-colors"
-                  >
-                    Open link
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
+                  {isSafeUrl(item.link) ? (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-accent-600 hover:text-accent-700 font-medium text-sm transition-colors"
+                    >
+                      Open link
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 text-surface-400 text-sm">
+                      Invalid link
+                    </span>
+                  )}
                 </Card>
               );
             })}
