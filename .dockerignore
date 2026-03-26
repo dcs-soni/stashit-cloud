@@ -1,0 +1,42 @@
+# Only send what Docker needs for the API build
+
+# Git
+.git
+.github
+.gitignore
+
+# Infrastructure (not needed for Docker builds)
+infrastructure
+
+# Documentation
+*.md
+
+# IDE
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Root node_modules (workspace deps installed fresh in container)
+node_modules
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker files (prevent recursive context)
+docker-compose*
+Makefile
+
+# Web build artifacts (not needed for API image)
+web/node_modules
+web/dist
+
+# API build artifacts
+api/node_modules
+api/dist
+api/.env
+api/.env.*

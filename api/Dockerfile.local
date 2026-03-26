@@ -1,21 +1,25 @@
-# Local Development Dockerfile
+# Local Development Dockerfile - workspace-aware
 
 FROM node:20-alpine AS deps
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml* ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-RUN pnpm install --frozen-lockfile
+COPY api/package.json ./api/
+
+RUN pnpm install --frozen-lockfile --filter api
 
 
 
 
 FROM deps AS builder
 
-COPY . .
+COPY api/ ./api/
+
+WORKDIR /app/api
 
 RUN pnpm build
 
@@ -34,9 +38,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-COPY --from=builder --chown=fastify:nodejs /app/dist ./dist
-COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=fastify:nodejs /app/package.json ./
+COPY --from=builder --chown=fastify:nodejs /app/api/dist ./dist
+COPY --from=builder --chown=fastify:nodejs /app/api/node_modules ./node_modules
+COPY --from=builder --chown=fastify:nodejs /app/api/package.json ./
 
 USER fastify
 
