@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile.local
+      context: .
+      dockerfile: api/Dockerfile.local
     image: stashit/api:local
     container_name: stashit-api
     restart: unless-stopped
