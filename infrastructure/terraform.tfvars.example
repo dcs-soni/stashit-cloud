@@ -17,7 +17,7 @@ chroma_api_key  = "your-chroma-api-key"
 openai_api_key  = "your-openai-api-key"
 
 # CORS origin (REQUIRED - must be explicit, not wildcard)
-cors_origin = "https://your-production-domain.com"
+cors_origin = "https://production-domain.com"
 
 # Optional
 log_retention_days = 90
