@@ -1,25 +1,30 @@
-# AWS Lambda Container
+# AWS Lambda Container - workspace-aware
 
 FROM node:20-alpine AS deps
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml* ./
+# Workspace root files (lockfile, workspace config, root package.json)
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-RUN pnpm install --frozen-lockfile
+COPY api/package.json ./api/
+
+RUN pnpm install --frozen-lockfile --filter api
 
 
 
 FROM deps AS builder
 
-COPY . .
+COPY api/ ./api/
+
+WORKDIR /app/api
 
 RUN pnpm build
 
-RUN pnpm prune --prod
-
+WORKDIR /app
+RUN pnpm deploy --filter api --prod --legacy /app/deployed
 
 
 
@@ -27,8 +32,8 @@ FROM public.ecr.aws/lambda/nodejs:20 AS runner
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/dist ${LAMBDA_TASK_ROOT}/dist
-COPY --from=builder /app/node_modules ${LAMBDA_TASK_ROOT}/node_modules
-COPY --from=builder /app/package.json ${LAMBDA_TASK_ROOT}/
+COPY --from=builder /app/api/dist ${LAMBDA_TASK_ROOT}/dist
+COPY --from=builder /app/deployed/node_modules ${LAMBDA_TASK_ROOT}/node_modules
+COPY --from=builder /app/deployed/package.json ${LAMBDA_TASK_ROOT}/
 
 CMD ["dist/lambda.handler"]
