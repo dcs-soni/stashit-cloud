@@ -21,34 +21,14 @@ resource "aws_cloudfront_cache_policy" "static" {
   }
 }
 
-# Cache policy for API (no cache)
-resource "aws_cloudfront_cache_policy" "api" {
-  name        = "${var.project_name}-api-${var.environment}"
-  default_ttl = 0
-  max_ttl     = 0
-  min_ttl     = 0
-
-  parameters_in_cache_key_and_forwarded_to_origin {
-    cookies_config { cookie_behavior = "all" }
-    headers_config {
-      header_behavior = "whitelist"
-      headers { items = ["Authorization", "Origin", "Accept", "Content-Type"] }
-    }
-    query_strings_config { query_string_behavior = "all" }
-    enable_accept_encoding_brotli = true
-    enable_accept_encoding_gzip   = true
-  }
+# Fetch the ID for the managed "CachingDisabled" policy
+data "aws_cloudfront_cache_policy" "disabled" {
+  name = "Managed-CachingDisabled"
 }
 
-resource "aws_cloudfront_origin_request_policy" "api" {
-  name = "${var.project_name}-api-origin-${var.environment}"
-
-  cookies_config { cookie_behavior = "all" }
-  headers_config {
-    header_behavior = "whitelist"
-    headers { items = ["Authorization", "Origin", "Accept", "Content-Type"] }
-  }
-  query_strings_config { query_string_behavior = "all" }
+# Fetch the ID for the managed "AllViewerExceptHostHeader" policy
+data "aws_cloudfront_origin_request_policy" "all_viewer" {
+  name = "Managed-AllViewerExceptHostHeader"
 }
 
 # Security headers policy for all responses
@@ -97,7 +77,7 @@ resource "aws_cloudfront_distribution" "main" {
 
   # API Gateway Origin
   origin {
-    domain_name = replace(aws_apigatewayv2_stage.default.invoke_url, "https://", "")
+    domain_name = replace(replace(aws_apigatewayv2_stage.default.invoke_url, "https://", ""), "/", "")
     origin_id   = "APIGateway"
 
     custom_origin_config {
@@ -127,8 +107,8 @@ resource "aws_cloudfront_distribution" "main" {
     target_origin_id         = "APIGateway"
     viewer_protocol_policy   = "https-only"
     compress                 = true
-    cache_policy_id          = aws_cloudfront_cache_policy.api.id
-    origin_request_policy_id = aws_cloudfront_origin_request_policy.api.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.disabled.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
   }
 
   # /health route to API Gateway
@@ -139,8 +119,8 @@ resource "aws_cloudfront_distribution" "main" {
     target_origin_id         = "APIGateway"
     viewer_protocol_policy   = "https-only"
     compress                 = true
-    cache_policy_id          = aws_cloudfront_cache_policy.api.id
-    origin_request_policy_id = aws_cloudfront_origin_request_policy.api.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.disabled.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
   }
 
   # SPA routing: 404 → index.html
@@ -165,8 +145,5 @@ resource "aws_cloudfront_distribution" "main" {
   restrictions {
     geo_restriction { restriction_type = "none" }
   }
-
-  depends_on = [aws_s3_bucket_policy.frontend]
-
   tags = { Component = "CDN" }
 }
