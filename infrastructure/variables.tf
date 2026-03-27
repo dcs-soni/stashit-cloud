@@ -15,6 +15,12 @@ variable "environment" {
   }
 }
 
+variable "domain_name" {
+  description = "Domain name"
+  type        = string
+  default     = ""
+}
+
 variable "aws_region" {
   description = "AWS region"
   type        = string
