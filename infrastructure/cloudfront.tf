@@ -1,4 +1,33 @@
 
+# ─── ACM Certificate (must be in us-east-1 for CloudFront) ───────────────────
+
+resource "aws_acm_certificate" "custom_domain" {
+  count    = var.domain_name != "" ? 1 : 0
+  provider = aws.us_east_1
+
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = { Component = "SSL" }
+}
+
+resource "aws_acm_certificate_validation" "custom_domain" {
+  count    = var.domain_name != "" ? 1 : 0
+  provider = aws.us_east_1
+
+  certificate_arn = aws_acm_certificate.custom_domain[0].arn
+
+  # Validation is done manually via Hostinger DNS, so we just wait for it
+  timeouts {
+    create = "45m"
+  }
+}
+
+
 resource "aws_cloudfront_origin_access_control" "s3" {
   name                              = "${var.project_name}-s3-oac"
   origin_access_control_origin_type = "s3"
@@ -67,6 +96,7 @@ resource "aws_cloudfront_distribution" "main" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
   price_class         = "PriceClass_200"
+  aliases             = var.domain_name != "" ? [var.domain_name] : []
 
   # S3 Origin (Frontend)
   origin {
@@ -90,13 +120,13 @@ resource "aws_cloudfront_distribution" "main" {
 
   # Default: Serve from S3
   default_cache_behavior {
-    allowed_methods                = ["GET", "HEAD", "OPTIONS"]
-    cached_methods                 = ["GET", "HEAD"]
-    target_origin_id               = "S3Frontend"
-    viewer_protocol_policy         = "redirect-to-https"
-    compress                       = true
-    cache_policy_id                = aws_cloudfront_cache_policy.static.id
-    response_headers_policy_id     = aws_cloudfront_response_headers_policy.security.id
+    allowed_methods            = ["GET", "HEAD", "OPTIONS"]
+    cached_methods             = ["GET", "HEAD"]
+    target_origin_id           = "S3Frontend"
+    viewer_protocol_policy     = "redirect-to-https"
+    compress                   = true
+    cache_policy_id            = aws_cloudfront_cache_policy.static.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
   }
 
   # /api/* routes to API Gateway
@@ -138,12 +168,19 @@ resource "aws_cloudfront_distribution" "main" {
     error_caching_min_ttl = 10
   }
 
+  # Use ACM certificate when custom domain is configured, otherwise default
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = var.domain_name == ""
+    acm_certificate_arn            = var.domain_name != "" ? aws_acm_certificate_validation.custom_domain[0].certificate_arn : null
+    ssl_support_method             = var.domain_name != "" ? "sni-only" : null
+    minimum_protocol_version       = var.domain_name != "" ? "TLSv1.2_2021" : null
   }
 
   restrictions {
     geo_restriction { restriction_type = "none" }
   }
+
+  depends_on = [aws_acm_certificate_validation.custom_domain]
+
   tags = { Component = "CDN" }
 }
