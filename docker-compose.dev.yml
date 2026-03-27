@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api/Dockerfile.local
       target: deps # Use deps stage (has all dev dependencies)
     container_name: stashit-api-dev
     restart: unless-stopped
