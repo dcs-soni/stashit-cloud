@@ -70,9 +70,9 @@ services:
     tmpfs:
       - /var/cache/nginx:uid=101,gid=101
       - /var/run:uid=101,gid=101
-    depends_on:
-      api:
-        condition: service_healthy
+    # depends_on:
+    #   api:
+    #     condition: service_healthy
     # Resource limits
     mem_limit: 128m
     mem_reservation: 64m
